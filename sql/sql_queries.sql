@@ -90,22 +90,6 @@ SELECT
 FROM generate_series('2024-01-01'::DATE,'2024-12-31':: DATE, '1 day') AS date_val;
 
 
-ALTER TABLE dim.customer ADD PRIMARY KEY (customer_sk);
-ALTER TABLE dim.service ADD PRIMARY KEY (service_sk);
-ALTER TABLE dim.channel ADD PRIMARY KEY (channel_sk);
-ALTER TABLE dim.date ADD PRIMARY KEY (date_sk);
-
-ALTER TABLE dim.customer ADD UNIQUE (customer_id);
-ALTER TABLE fact.transactions ADD PRIMARY KEY (transaction_sk);
-
-ALTER TABLE fact.transactions 
-ADD CONSTRAINT FK_customer FOREIGN KEY (customer_sk) REFERENCES dim.customer(customer_sk);
-ALTER TABLE fact.transactions 
-ADD CONSTRAINT FK_service FOREIGN KEY (service_sk) REFERENCES dim.service(service_sk);
-ALTER TABLE fact.transactions 
-ADD CONSTRAINT FK_channel FOREIGN KEY (channel_sk) REFERENCES dim.channel(channel_sk);
-ALTER TABLE fact.transactions 
- ADD CONSTRAINT FK_date FOREIGN KEY (date_sk) REFERENCES dim.date(date_sk);
 
 ---fact table
 CREATE TABLE fact.transactions AS 
@@ -132,6 +116,23 @@ WHERE bt.customer_id IS NOT NULL
 LIMIT 1000;
 
 
+ALTER TABLE dim.customer ADD PRIMARY KEY (customer_sk);
+ALTER TABLE dim.service ADD PRIMARY KEY (service_sk);
+ALTER TABLE dim.channel ADD PRIMARY KEY (channel_sk);
+ALTER TABLE dim.date ADD PRIMARY KEY (date_sk);
+
+ALTER TABLE dim.customer ADD UNIQUE (customer_id);
+ALTER TABLE fact.transactions ADD PRIMARY KEY (transaction_sk);
+
+ALTER TABLE fact.transactions 
+ADD CONSTRAINT FK_customer FOREIGN KEY (customer_sk) REFERENCES dim.customer(customer_sk);
+ALTER TABLE fact.transactions 
+ADD CONSTRAINT FK_service FOREIGN KEY (service_sk) REFERENCES dim.service(service_sk);
+ALTER TABLE fact.transactions 
+ADD CONSTRAINT FK_channel FOREIGN KEY (channel_sk) REFERENCES dim.channel(channel_sk);
+ALTER TABLE fact.transactions 
+ ADD CONSTRAINT FK_date FOREIGN KEY (date_sk) REFERENCES dim.date(date_sk);
+
 ---performance optimization 
 CREATE INDEX idx_fact_customer ON fact.transactions (customer_sk);
 CREATE INDEX idx_fact_service  ON fact.transactions(service_sk);
@@ -143,12 +144,14 @@ CREATE INDEX idx_customer ON dim.customer(customer_sk,customer_id);
 
 ---security and access control
 CREATE ROLE quickcash_finace_team;
-CREATE ROLE quickcash_markerting_team;
+
 
 CREATE USER finance WITH PASSWORD 'secure_finance';
 GRANT quickcash_finace_team TO finance;
-
+GRANT USAGE ON SCHEMA fact TO quickcash_finace_team;
+ 
 GRANT SELECT ON fact.transactions TO quickcash_finace_team;
+
 
 
 
